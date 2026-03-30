@@ -35,7 +35,7 @@ export function hashPassword(password: string): string {
 }
 
 export function verifyPassword(password: string, stored: string): boolean {
-  const [salt, hash] = stored.split(":");
+  const [salt, hash] = stored.split(':');
   // Fallback for demo users where the password may be stored in plain text
   if (!salt || !hash) {
     return password === stored;
@@ -55,8 +55,8 @@ export function destroySession(sessionId: string): void {
   sessionStore.delete(sessionId);
 }
 
-export function getUserFromRequest(req: NextRequest): User | null {
-  const cookieStore = cookies();
+export async function getUserFromRequest(req: NextRequest): Promise<User | null> {
+  const cookieStore = await cookies();
   const sessionId = cookieStore.get(SESSION_COOKIE)?.value;
   if (!sessionId) return null;
 
@@ -70,8 +70,8 @@ export function getUserFromRequest(req: NextRequest): User | null {
   return user;
 }
 
-export function requireAuth(req: NextRequest): User {
-  const user = getUserFromRequest(req);
+export async function requireAuth(req: NextRequest): Promise<User> {
+  const user = await getUserFromRequest(req);
   if (!user) {
     throw new Response(JSON.stringify({ message: "Unauthorized" }), {
       status: 401,
@@ -81,8 +81,8 @@ export function requireAuth(req: NextRequest): User {
   return user;
 }
 
-export function requireRole(req: NextRequest, roles: Role[]): User {
-  const user = requireAuth(req);
+export async function requireRole(req: NextRequest, roles: Role[]): Promise<User> {
+  const user = await requireAuth(req);
   if (!roles.includes(user.role)) {
     throw new Response(JSON.stringify({ message: "Forbidden" }), {
       status: 403,
@@ -92,8 +92,8 @@ export function requireRole(req: NextRequest, roles: Role[]): User {
   return user;
 }
 
-export function setSessionCookie(sessionId: string) {
-  const cookieStore = cookies();
+export async function setSessionCookie(sessionId: string): Promise<void> {
+  const cookieStore = await cookies();
   cookieStore.set(SESSION_COOKIE, sessionId, {
     httpOnly: true,
     sameSite: "lax",
@@ -101,7 +101,7 @@ export function setSessionCookie(sessionId: string) {
   });
 }
 
-export function clearSessionCookie() {
-  const cookieStore = cookies();
+export async function clearSessionCookie(): Promise<void> {
+  const cookieStore = await cookies();
   cookieStore.delete(SESSION_COOKIE);
 }
